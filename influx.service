@@ -1,0 +1,15 @@
+[Unit]
+Description=The plugin-driven server agent for influxdb2
+Documentation=https://github.com/influxdata/influxdb
+After=network.target
+
+[Service]
+User=isnflow
+ExecStart=/home/isnflow/bin/influxd
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartForceExitStatus=SIGPIPE
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
