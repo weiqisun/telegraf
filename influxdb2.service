@@ -1,0 +1,13 @@
+[Unit]
+Description=InfluxDB 2.0 is an open-source, distributed, time series database
+Documentation=https://github.com/influxdata/influxdb
+After=network-online.target
+
+[Service]
+User=isnflow
+ExecStart=/home/isnflow/bin/influx2d
+KillMode=control-group
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
