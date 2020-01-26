@@ -1,0 +1,66 @@
+#!/bin/sh
+
+# start/stop port redirection
+
+print_usage () {
+    echo Usage: redirect start/stop/status SOURCE_PORT DEST_PORT
+}
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    print_usage
+    exit 0
+fi
+
+if [ $# -ne 3 ]; then
+    echo Please provide correct arguments.
+    print_usage
+    exit 1
+fi
+
+if [ "$1" != "start" ] && [ "$1" != "stop" ] && [ "$1" != "status" ]; then
+    echo Please provide the correct mode [start/stop/status].
+    print_usage
+    exit 2
+fi
+
+if [ "$2" -eq "$2" ] && [ "$3" -eq "$3" ] 2>/dev/null; then
+    if [ "$2" -eq "$3" ]; then
+        echo Cannot redirect to the same port. Please provide correct port numbers.
+        print_usage
+        exit 4
+    fi
+else
+    echo Please provide correct port numbers.
+    print_usage
+    exit 3
+fi
+
+SOURCE_PORT=$2
+DEST_PORT=$3
+RULE_INDEX=`sudo iptables -t nat -v -L PREROUTING -n --line-number | grep ":$SOURCE_PORT redir ports $DEST_PORT$" | awk '{print $1;}'`
+
+if [ "$1" = "start" ]; then
+    # start redirection
+    if [ -z "$RULE_INDEX" ]; then
+        echo redirecting port $SOURCE_PORT to port $DEST_PORT
+        sudo iptables -A PREROUTING -t nat -i eth0 -p tcp --dport $SOURCE_PORT -j REDIRECT --to-port $DEST_PORT
+    else
+        echo port $SOURCE_PORT has been redirected to port $DEST_PORT
+    fi
+elif [ "$1" = "stop" ]; then
+    # stop redirection
+    if [ -z "$RULE_INDEX" ]; then
+        echo redirection from port $SOURCE_PORT to port $DEST_PORT doesn\'t exist
+    else
+        echo removing redirection from port $SOURCE_PORT to port $DEST_PORT
+        sudo iptables -t nat -D PREROUTING $RULE_INDEX
+    fi
+else
+    # print status
+    if [ -z "$RULE_INDEX" ]; then
+        echo redirection from port $SOURCE_PORT to port $DEST_PORT doesn\'t exist
+        exit 5
+    else
+        echo iptables rule index for this redirection is $RULE_INDEX
+    fi
+fi

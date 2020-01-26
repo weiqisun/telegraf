@@ -1,0 +1,11 @@
+[Unit]
+Description=redirecting http port 80 to influxdb2 port 9999
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/isnflow/bin/port_redirect start 80 9999
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target
